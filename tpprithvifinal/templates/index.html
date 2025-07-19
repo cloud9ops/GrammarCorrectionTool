@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Grammar Polisher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background-color: #f9f9f9;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 1rem;
+            font-size: 1rem;
+        }
+        .section {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        pre {
+            white-space: pre-wrap;
+        }
+        .issues {
+            color: #c00;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧽 Grammar Polishing Tool</h1>
+    <form method="POST">
+        <textarea name="user_text" placeholder="Paste your text here..." required></textarea><br><br>
+        <button type="submit">Polish Text</button>
+    </form>
+
+    {% if result %}
+        {% if result.error %}
+            <div class="section">
+                <strong>Error:</strong> {{ result.error }}
+            </div>
+        {% else %}
+            <div class="section">
+                <h2>✅ Final Polished Text</h2>
+                <pre>{{ result.polished_text }}</pre>
+            </div>
+
+            <div class="section">
+                <h2>📋 Sentence-by-Sentence Details</h2>
+                {% for detail in result.details %}
+                    <p><strong>Sentence {{ detail.sentence_number }}</strong></p>
+                    <p><em>Original:</em> {{ detail.original }}</p>
+                    <p><em>Polished:</em> {{ detail.polished }}</p>
+                    <p><em>Token Count:</em> {{ detail.token_count }}</p>
+                    <div class="issues">
+                        <em>Issues:</em>
+                        {% if detail.issues %}
+                            <ul>
+                                {% for issue in detail.issues %}
+                                    <li>{{ issue.message }} (Suggestions: {{ issue.replacements }})</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            ✅ No issues found.
+                        {% endif %}
+                    </div>
+                    <hr>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+</body>
+</html>
