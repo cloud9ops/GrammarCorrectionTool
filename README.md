@@ -11,4 +11,4 @@ Grammar polishing and lexical analysis for identifying and correcting typos and 
 >> This directory contains a basic implementation of a grammar and text polishing tool which utilizes language-tool and Spacy's model en-core-web-sm, which is a small model that helps in tagging.
 
 
-  print("Hello world")
+    print("Hello world")
