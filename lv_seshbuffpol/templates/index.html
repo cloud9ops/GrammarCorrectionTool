@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Grammar Polisher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background-color: #f9f9f9;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 1rem;
+            font-size: 1rem;
+        }
+        .section {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        pre {
+            white-space: pre-wrap;
+        }
+        .issues {
+            color: #c00;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            margin-right: 1rem;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧽 Grammar Polishing Tool</h1>
+
+    <form method="POST">
+        <textarea name="user_text" placeholder="Paste your text here..." required oninput="handleTyping(this)"></textarea><br><br>
+        <button type="button" onclick="sendTextForStreaming()">Polish(click here only if you are copy pasting your text.) (Stream)</button>
+    </form>
+
+    <div id="live-results" class="section" style="display:none;">
+        <h2>📡 Live Streaming Results</h2>
+        <div id="stream-output"></div>
+    </div>
+
+    <div id="auto-polish-results" class="section" style="display:none;">
+        <h2>⚡ Auto Polishing (Per Sentence)</h2>
+        <div id="auto-output"></div>
+    </div>
+
+    {% if result %}
+        {% if result.error %}
+            <div class="section">
+                <strong>Error:</strong> {{ result.error }}
+            </div>
+        {% else %}
+            <div class="section">
+                <h2>✅ Final Polished Text</h2>
+                <pre>{{ result.polished_text }}</pre>
+            </div>
+
+            <div class="section">
+                <h2>📋 Sentence-by-Sentence Details</h2>
+                {% for detail in result.details %}
+                    <p><strong>Sentence {{ detail.sentence_number }}</strong></p>
+                    <p><em>Original:</em> {{ detail.original }}</p>
+                    <p><em>Polished:</em> {{ detail.polished }}</p>
+                    <p><em>Token Count:</em> {{ detail.token_count }}</p>
+                    <div class="issues">
+                        <em>Issues:</em>
+                        {% if detail.issues %}
+                            <ul>
+                                {% for issue in detail.issues %}
+                                    <li>{{ issue.message }} (Suggestions: {{ issue.replacements }})</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            ✅ No issues found.
+                        {% endif %}
+                    </div>
+                    <hr>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <script>
+    function sendTextForStreaming() {
+        const textarea = document.querySelector("textarea[name='user_text']");
+        const text = textarea.value.trim();
+        const liveResults = document.getElementById("live-results");
+        const streamOutput = document.getElementById("stream-output");
+
+        if (!text) {
+            alert("Please enter some text.");
+            return;
+        }
+
+        liveResults.style.display = "block";
+        streamOutput.innerHTML = "⏳ Starting stream...<br>";
+
+        fetch("/stream", {
+            method: "POST",
+            body: new URLSearchParams({ user_text: text }),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        })
+        .then(response => {
+            if (!response.body) {
+                streamOutput.innerHTML += "❌ No stream available.";
+                return;
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            function readChunk() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        streamOutput.innerHTML += "<br>✅ Streaming complete.";
+                        return;
+                    }
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.trim().split("\n");
+
+                    lines.forEach(line => {
+                        if (line.startsWith("data:")) {
+                            const data = line.replace("data: ", "").trim();
+                            if (data.startsWith("error|")) {
+                                streamOutput.innerHTML += `<p style="color:red;">❌ ${data.slice(6)}</p>`;
+                                return;
+                            }
+
+                            try {
+                                const parsed = JSON.parse(data);
+
+                                const issuesHTML = parsed.issues && parsed.issues.length > 0
+                                    ? `<ul>` + parsed.issues.map(issue =>
+                                        `<li>${issue.message} (Suggestions: ${issue.replacements})</li>`
+                                      ).join("") + `</ul>`
+                                    : "✅ No issues found.";
+
+                                streamOutput.innerHTML += `
+                                    <div class="section">
+                                        <p><strong>Sentence ${parsed.sentence_number}</strong></p>
+                                        <p><em>Original:</em> ${parsed.original}</p>
+                                        <p><em>Polished:</em> ${parsed.polished}</p>
+                                        <p><em>Token Count:</em> ${parsed.token_count}</p>
+                                        <div class="issues"><em>Issues:</em> ${issuesHTML}</div>
+                                        <hr>
+                                    </div>
+                                `;
+                            } catch (e) {
+                                streamOutput.innerHTML += `<p style="color:red;">❌ Failed to parse response: ${e.message}</p>`;
+                            }
+                        }
+                    });
+
+                    readChunk();
+                });
+            }
+
+            readChunk();
+        })
+        .catch(error => {
+            streamOutput.innerHTML = `<span style="color:red;">❌ ${error.message}</span>`;
+        });
+    }
+
+    let lastProcessed = "";
+
+    function handleTyping(textarea) {
+        const text = textarea.value;
+        const lastChar = text.slice(-1);
+
+        if (['.', '!', '?'].includes(lastChar)) {
+            const sentences = text.match(/[^.!?]+[.!?]/g);
+            if (!sentences) return;
+
+            const latest = sentences[sentences.length - 1].trim();
+            if (!latest || latest === lastProcessed) return;
+
+            lastProcessed = latest;
+
+            fetch("/auto-polish", {
+                method: "POST",
+                body: JSON.stringify({ sentence: latest }),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("auto-polish-results").style.display = "block";
+                const autoOutput = document.getElementById("auto-output");
+
+                if (data.error) {
+                    autoOutput.innerHTML += `<p style="color:red;">❌ ${data.error}</p>`;
+                    return;
+                }
+
+                const issuesHTML = data.issues && data.issues.length > 0
+                    ? `<ul>` + data.issues.map(issue =>
+                        `<li>${issue.message} (Suggestions: ${issue.replacements})</li>`
+                      ).join("") + `</ul>`
+                    : "✅ No issues found.";
+
+                autoOutput.innerHTML += `
+                    <div class="section">
+                        <p><strong>Auto Polished:</strong> ${data.polished}</p>
+                        <p><em>Original:</em> ${data.original}</p>
+                        <p><em>Token Count:</em> ${data.token_count}</p>
+                        <div class="issues"><em>Issues:</em> ${issuesHTML}</div>
+                        <hr>
+                    </div>
+                `;
+            })
+            .catch(err => {
+                document.getElementById("auto-output").innerHTML += `<p style="color:red;">❌ ${err.message}</p>`;
+            });
+        }
+    }
+    </script>
+
+</body>
+</html>
+
