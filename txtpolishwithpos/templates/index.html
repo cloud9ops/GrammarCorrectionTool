@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grammar Polishing Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      background-color: #f5f5f5;
+      padding: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 6em;
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 6px;
+    }
+
+    .highlight {
+      font-style: italic;
+      color: #006400;
+      white-space: pre-wrap;
+    }
+
+    .issues {
+      margin-top: 1rem;
+    }
+
+    .issue {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background-color: #fdfdfd;
+      border-left: 5px solid #ff5722;
+      border-radius: 4px;
+    }
+
+    .pos-flag {
+      color: #d32f2f;
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+    }
+
+    .suggestion {
+      font-size: 0.9rem;
+      color: #333;
+      margin-top: 0.25rem;
+    }
+
+    .offset-info {
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 0.3rem;
+      font-style: italic;
+    }
+
+    h1, h2, h3 {
+      color: #333;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Grammar Polishing Tool</h1>
+
+  <form method="post">
+    <label for="sentence"><strong>Enter a sentence (LaTeX allowed):</strong></label><br />
+    <textarea id="sentence" name="sentence" placeholder="Type your sentence here..." required>{{ original or '' }}</textarea><br />
+    <button type="submit">Polish</button>
+  </form>
+
+  {% if polished %}
+  <div class="result">
+    <h2>Original (Processed Input)</h2>
+    <p>{{ original }}</p>
+
+    <h2>Polished Output</h2>
+    <p class="highlight">{{ polished }}</p>
+
+    {% if issues %}
+    <div class="issues">
+      <h3>Issues Found</h3>
+      {% for issue in issues %}
+      <div class="issue">
+        <strong>{{ loop.index }}.</strong> {{ issue.message }}
+        <div class="offset-info">
+          Offset: {{ issue.offset }}, Length: {{ issue.length }}
+        </div>
+        {% if issue.is_pos_issue == 'True' %}
+          <div class="pos-flag">⚠️ Part-of-Speech Issue</div>
+        {% endif %}
+        {% if issue.replacements %}
+          <div class="suggestion">Suggested: <em>{{ issue.replacements }}</em></div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <p>No major issues detected.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</body>
+</html>
