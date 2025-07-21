@@ -1,4 +1,4 @@
-````
+
 # ✨ Grammar Polishing Web App
 
 A clean and efficient Flask-based application that corrects grammar, improves sentence structure, and adjusts verb tenses based on context — with a little NLP magic.
@@ -72,7 +72,7 @@ This app takes a sentence from the user and:
 
 ## 🔄 Workflow Diagram
 
-```mermaid
+```
 graph TD
     A[User inputs sentence] --> B[Flask receives POST request]
     B --> C[Optional: Strip LaTeX via Pandoc]
@@ -81,7 +81,7 @@ graph TD
     E --> F[Fix grammar & tense via spaCy]
     F --> G[Return final output with issues]
     G --> H[Render index.html with results]
-````
+```
 
 ---
 
