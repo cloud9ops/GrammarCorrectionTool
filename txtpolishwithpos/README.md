@@ -1,28 +1,28 @@
 
-# ✨ Grammar Polishing Web App
+# Grammar Polishing Web App
 
-A clean and efficient Flask-based application that corrects grammar, improves sentence structure, and adjusts verb tenses based on context — with a little NLP magic.
+A clean and efficient Flask-based application that corrects grammar, improves sentence structure, and adjusts verb tenses based on context using NLP techniques.
 
 ---
 
-## 🧠 What It Does
+## What It Does
 
 This app takes a sentence from the user and:
 
-1. ✂️ Optionally removes LaTeX formatting using **Pandoc**
-2. ✅ Fixes grammar issues using **LanguageTool**
-3. 🔁 Adjusts tense and part-of-speech (POS) consistency using **spaCy** + **lemminflect**
-4. ✨ Returns a polished version with a detailed list of all corrections
+1. Optionally removes LaTeX formatting using **Pandoc**
+2. Fixes grammar issues using **LanguageTool**
+3. Adjusts tense and part-of-speech (POS) consistency using **spaCy** and **lemminflect**
+4. Returns a polished version with a detailed list of all corrections
 
 ---
 
-## 🧩 Core Components
+## Core Components
 
-### `app.py` – The Web Server 🖥️
+### `app.py` – The Web Server
 
-- ⚙️ Initializes a **Flask** app
-- 🧽 `strip_latex(raw)` – Uses `pandoc` to convert LaTeX to plain text
-- 🌐 Route `/`:
+- Initializes a **Flask** app
+- `strip_latex(raw)` – Uses `pandoc` to convert LaTeX to plain text
+- Route `/`:
   - **GET**: Loads the input form (`index.html`)
   - **POST**: 
     - Gets user input
@@ -35,42 +35,39 @@ This app takes a sentence from the user and:
 
 ---
 
-### `text_processor.py` – The NLP Engine 🔬
+### `text_processor.py` – The NLP Engine
 
-#### 🛠️ Libraries Used:
-- `spaCy` (`en_core_web_trf`) – Deep syntax analysis
-- `lemminflect` – Smart verb inflection
-- `language_tool_python` – Grammar checker
-- `re` – Regex for spacing cleanup
+#### Libraries Used:
+- `spaCy` (`en_core_web_trf`) – Syntax and dependency parsing
+- `lemminflect` – Inflection of verb forms
+- `language_tool_python` – Grammar checking
+- `re` – Regular expressions for text cleanup
 
-#### 📦 Functions:
+#### Functions:
 
 - `clean_spacing(text)`  
-  🔹 Removes extra spaces and cleans up punctuation
+  Removes extra spaces and cleans up punctuation.
 
 - `detect_temporal_context(text)`  
-  🔹 Detects if the sentence is talking about the **past**, **present**, or **future**
+  Detects whether the sentence refers to past, present, or future.
 
 - `analyze_pos_agreement(text)`  
-  🔹 Fixes:
+  Applies rule-based corrections for:
   - Subject-verb agreement (`He go → He goes`)
   - Modal + past tense (`could went → could go`)
   - Pronoun + "be" verb mismatches (`They is → They are`)
-  - Tense mismatch (`Yesterday he go → Yesterday he went`)
+  - Tense mismatch based on context (`Yesterday he go → Yesterday he went`)
 
 - `polish_text(text)`  
-  🧪 The full polishing pipeline:
-  1. LanguageTool grammar fixes  
-  2. POS & tense corrections  
+  Complete processing pipeline:
+  1. Grammar fixes via LanguageTool  
+  2. POS and tense corrections using spaCy  
   3. Spacing cleanup  
-  4. Outputs:  
-     - Original sentence  
-     - Polished version  
-     - List of all corrections (with metadata)
+  4. Outputs original, polished text, and list of corrections
 
 ---
 
-## 🔄 Workflow Diagram
+## Workflow Diagram
 
 ```
 graph TD
@@ -85,7 +82,7 @@ graph TD
 
 ---
 
-## 📦 Requirements
+## Requirements
 
 * Python 3.8+
 * Flask
@@ -96,7 +93,7 @@ graph TD
 
 ---
 
-## ⚡ Example Correction
+## Example Correction
 
 **Input**:
 `He go to school yesterday.`
@@ -111,7 +108,7 @@ graph TD
 
 ---
 
-## 📁 Folder Structure
+## Folder Structure
 
 ```
 .
@@ -123,15 +120,9 @@ graph TD
 
 ---
 
-## 💡 Notes
+## Notes
 
 * Pandoc must be installed and accessible via PATH
-* `en_core_web_trf` must be downloaded with `python -m spacy download en_core_web_trf`
-* Designed to be modular — can be extended with more rules or alternative models
+* `en_core_web_trf` must be downloaded using `python -m spacy download en_core_web_trf`
+* Designed for modular expansion with additional rules or alternative models
 
----
-
-Made for developers who want clean grammar and clean code ✍️🧼
-
-```
-```
