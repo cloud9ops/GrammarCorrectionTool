@@ -1,0 +1,10 @@
+flask
+language-tool-python
+transformers
+torch
+pynput
+python-docx
+werkzeug
+scikit-learn
+nltk
+regex
