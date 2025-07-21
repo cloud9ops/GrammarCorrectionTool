@@ -5,7 +5,7 @@ A Flask-based web interface for real-time, sentence-by-sentence text enhancement
 
 ---
 
-## File: `app_stream.py`
+## File: `app.py`
 
 This is the core server-side file responsible for handling web routes, streaming polished output, and serving frontend content.
 
