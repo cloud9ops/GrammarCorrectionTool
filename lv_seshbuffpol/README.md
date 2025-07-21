@@ -99,5 +99,3 @@ This Flask app:
 * Offers on-demand single-sentence correction via a lightweight JSON API
 * Harnesses the power of Transformer models in a developer-friendly interface
 
-```
-```
